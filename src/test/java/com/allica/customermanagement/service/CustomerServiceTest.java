@@ -1,5 +1,7 @@
 package com.allica.customermanagement.service;
 
+import com.allica.customermanagement.dto.CustomerRequest;
+import com.allica.customermanagement.dto.CustomerResponse;
 import com.allica.customermanagement.entity.Customer;
 import com.allica.customermanagement.repository.CustomerRepository;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,26 +32,26 @@ class CustomerServiceTest {
 
     @Test
     void shouldCreateCustomerSuccessfully() {
-        Customer customer = new Customer("John", "Doe", LocalDate.of(1990, 1, 15));
+        CustomerRequest request = new CustomerRequest("John", "Doe", LocalDate.of(1990, 1, 15));
         Customer savedCustomer = new Customer("John", "Doe", LocalDate.of(1990, 1, 15));
 
         when(customerRepository.save(any(Customer.class))).thenReturn(savedCustomer);
 
-        Customer result = customerService.createCustomer(customer);
+        CustomerResponse result = customerService.createCustomer(request);
 
         assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo("John");
-        assertThat(result.getLastName()).isEqualTo("Doe");
-        assertThat(result.getDateOfBirth()).isEqualTo(LocalDate.of(1990, 1, 15));
+        assertThat(result.firstName()).isEqualTo("John");
+        assertThat(result.lastName()).isEqualTo("Doe");
+        assertThat(result.dateOfBirth()).isEqualTo(LocalDate.of(1990, 1, 15));
         verify(customerRepository, times(1)).save(any(Customer.class));
     }
 
     @Test
     void shouldRejectFutureDateOfBirth() {
         LocalDate futureDate = LocalDate.now().plusDays(1);
-        Customer customer = new Customer("John", "Doe", futureDate);
+        CustomerRequest request = new CustomerRequest("John", "Doe", futureDate);
 
-        assertThatThrownBy(() -> customerService.createCustomer(customer))
+        assertThatThrownBy(() -> customerService.createCustomer(request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Date of birth cannot be in the future");
 
@@ -58,9 +61,9 @@ class CustomerServiceTest {
     @Test
     void shouldRejectDateOfBirthMoreThan150YearsAgo() {
         LocalDate oldDate = LocalDate.now().minusYears(151);
-        Customer customer = new Customer("John", "Doe", oldDate);
+        CustomerRequest request = new CustomerRequest("John", "Doe", oldDate);
 
-        assertThatThrownBy(() -> customerService.createCustomer(customer))
+        assertThatThrownBy(() -> customerService.createCustomer(request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Date of birth cannot be more than 150 years ago");
 
@@ -75,10 +78,10 @@ class CustomerServiceTest {
 
         when(customerRepository.findAll()).thenReturn(expectedCustomers);
 
-        List<Customer> result = customerService.getAllCustomers();
+        List<CustomerResponse> result = customerService.getAllCustomers();
 
         assertThat(result).hasSize(2);
-        assertThat(result).containsExactlyInAnyOrder(customer1, customer2);
+        assertThat(result).extracting(CustomerResponse::firstName).containsExactlyInAnyOrder("John", "Jane");
         verify(customerRepository, times(1)).findAll();
     }
 
@@ -87,7 +90,7 @@ class CustomerServiceTest {
         when(customerRepository.findAll()).thenReturn(Collections.emptyList());
         //when(customerRepository.findAll()).thenReturn(List.of());
 
-        List<Customer> result = customerService.getAllCustomers();
+        List<CustomerResponse> result = customerService.getAllCustomers();
 
         assertThat(result).isEmpty();
         verify(customerRepository, times(1)).findAll();
