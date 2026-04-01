@@ -17,7 +17,6 @@ import java.util.List;
 public class CustomerService {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomerService.class);
-    private static final int MAX_AGE_YEARS = 150;
 
     private final CustomerRepository customerRepository;
 
@@ -27,8 +26,6 @@ public class CustomerService {
 
     public CustomerResponse createCustomer(CustomerRequest request) {
         logger.info("Creating customer request received");
-
-        validateDateOfBirth(request.dateOfBirth());
 
         Customer customer = new Customer(
                 request.firstName(),
@@ -51,17 +48,5 @@ public class CustomerService {
         return customers.stream()
                 .map(CustomerResponse::from)
                 .toList();
-    }
-
-    private void validateDateOfBirth(LocalDate dateOfBirth) {
-        if (dateOfBirth.isAfter(LocalDate.now())) {
-            logger.error("Date of birth cannot be in the future");
-            throw new IllegalArgumentException("Date of birth cannot be in the future");
-        }
-
-        if (dateOfBirth.isBefore(LocalDate.now().minusYears(MAX_AGE_YEARS))) {
-            logger.error("Date of birth cannot be more than " + MAX_AGE_YEARS + " years ago");
-            throw new IllegalArgumentException("Date of birth cannot be more than " + MAX_AGE_YEARS + " years ago");
-        }
     }
 }

@@ -47,7 +47,7 @@ class CustomerControllerTest {
                 UUID.randomUUID(),
                 "John",
                 "Doe",
-                LocalDate.of(1990, 5, 15)
+                LocalDate.of(1990, 1, 15)
         );
 
         when(customerService.createCustomer(any(CustomerRequest.class))).thenReturn(response);
@@ -111,7 +111,7 @@ class CustomerControllerTest {
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value(containsString("past")));
+                .andExpect(jsonPath("$.message").value(containsString("Date of birth must be in the past")));
     }
 
     @Test
@@ -151,7 +151,7 @@ class CustomerControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Date of birth cannot be in the future"));
+                .andExpect(jsonPath("$.message").value("Date of birth must be in the past"));
     }
 
 }

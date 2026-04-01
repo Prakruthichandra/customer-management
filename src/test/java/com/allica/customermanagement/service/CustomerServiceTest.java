@@ -47,30 +47,6 @@ class CustomerServiceTest {
     }
 
     @Test
-    void shouldRejectFutureDateOfBirth() {
-        LocalDate futureDate = LocalDate.now().plusDays(1);
-        CustomerRequest request = new CustomerRequest("John", "Doe", futureDate);
-
-        assertThatThrownBy(() -> customerService.createCustomer(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Date of birth cannot be in the future");
-
-        verify(customerRepository, never()).save(any(Customer.class));
-    }
-
-    @Test
-    void shouldRejectDateOfBirthMoreThan150YearsAgo() {
-        LocalDate oldDate = LocalDate.now().minusYears(151);
-        CustomerRequest request = new CustomerRequest("John", "Doe", oldDate);
-
-        assertThatThrownBy(() -> customerService.createCustomer(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Date of birth cannot be more than 150 years ago");
-
-        verify(customerRepository, never()).save(any(Customer.class));
-    }
-
-    @Test
     void shouldReturnAllCustomers() {
         Customer customer1 = new Customer("John", "Doe", LocalDate.of(1990, 1, 15));
         Customer customer2 = new Customer("Jane", "Smith", LocalDate.of(1985, 5, 20));

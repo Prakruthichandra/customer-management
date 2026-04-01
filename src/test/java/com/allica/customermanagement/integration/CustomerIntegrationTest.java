@@ -82,7 +82,7 @@ class CustomerIntegrationTest {
 
         assertThat(response).isNotNull();
         assertThat(response.status()).isEqualTo(400);
-        assertThat(response.message()).contains("Date of birth cannot be in the future");
+        assertThat(response.message()).contains("Date of birth must be in the past");
         assertThat(response.timestamp()).isNotNull();
     }
 }
