@@ -2,12 +2,14 @@ package com.allica.customermanagement.controller;
 
 import com.allica.customermanagement.dto.CustomerRequest;
 import com.allica.customermanagement.dto.CustomerResponse;
+import com.allica.customermanagement.exception.GlobalExceptionHandler;
 import com.allica.customermanagement.service.CustomerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CustomerController.class)
+@Import(GlobalExceptionHandler.class)
 class CustomerControllerTest {
 
     @Autowired
@@ -134,4 +137,21 @@ class CustomerControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
+
+    @Test
+    void shouldReturn400WithProperErrorFormat() throws Exception {
+        CustomerRequest request = new CustomerRequest("John", "Doe", LocalDate.now().plusDays(1));
+
+        when(customerService.createCustomer(any(CustomerRequest.class)))
+                .thenThrow(new IllegalArgumentException("Date of birth cannot be in the future"));
+
+        mockMvc.perform(post("/api/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Date of birth cannot be in the future"));
+    }
+
 }
