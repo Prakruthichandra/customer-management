@@ -41,7 +41,7 @@ class CustomerIntegrationTest {
         CustomerRequest request = new CustomerRequest("John", "Doe", LocalDate.of(1990, 1, 15));
 
         CustomerResponse createResponse = restClient.post()
-                .uri("/api/customers")
+                .uri("/api/v1/customers")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .retrieve()
@@ -57,7 +57,7 @@ class CustomerIntegrationTest {
         assertThat(createResponse.id()).isNotNull();
 
         CustomerResponse[] getAllResponse = restClient.get()
-                .uri("/api/customers")
+                .uri("/api/v1/customers")
                 .retrieve()
                 .body(CustomerResponse[].class);
 
@@ -73,7 +73,7 @@ class CustomerIntegrationTest {
         CustomerRequest invalidRequest = new CustomerRequest("John", "Doe", LocalDate.now().plusDays(1));
 
         ErrorResponse response = restClient.post()
-                .uri("/api/customers")
+                .uri("/api/v1/customers")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(invalidRequest)
                 .retrieve()

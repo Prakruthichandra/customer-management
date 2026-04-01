@@ -52,7 +52,7 @@ class CustomerControllerTest {
 
         when(customerService.createCustomer(any(CustomerRequest.class))).thenReturn(response);
 
-        mockMvc.perform(post("/api/customers")
+        mockMvc.perform(post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -81,7 +81,7 @@ class CustomerControllerTest {
 
         when(customerService.getAllCustomers()).thenReturn(customers);
 
-        mockMvc.perform(get("/api/customers")
+        mockMvc.perform(get("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -94,7 +94,7 @@ class CustomerControllerTest {
     void shouldReturnBadRequestWhenFirstNameIsNull() throws Exception {
         CustomerRequest request = new CustomerRequest(null, "Doe", LocalDate.of(1990, 5, 15));
 
-        mockMvc.perform(post("/api/customers")
+        mockMvc.perform(post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -106,7 +106,7 @@ class CustomerControllerTest {
     void shouldReturnBadRequestWhenDateOfBirthIsInFuture() throws Exception {
         CustomerRequest invalidRequest = new CustomerRequest("", "", LocalDate.now().plusDays(1));
 
-        mockMvc.perform(post("/api/customers")
+        mockMvc.perform(post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
@@ -121,7 +121,7 @@ class CustomerControllerTest {
         when(customerService.createCustomer(any(CustomerRequest.class)))
                 .thenThrow(new IllegalArgumentException("Date of birth cannot be in the future"));
 
-        mockMvc.perform(post("/api/customers")
+        mockMvc.perform(post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -133,7 +133,7 @@ class CustomerControllerTest {
     void shouldReturnEmptyArrayWhenNoCustomers() throws Exception {
         when(customerService.getAllCustomers()).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/customers"))
+        mockMvc.perform(get("/api/v1/customers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
@@ -145,13 +145,81 @@ class CustomerControllerTest {
         when(customerService.createCustomer(any(CustomerRequest.class)))
                 .thenThrow(new IllegalArgumentException("Date of birth cannot be in the future"));
 
-        mockMvc.perform(post("/api/customers")
+        mockMvc.perform(post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Date of birth must be in the past"));
+    }
+
+    @Test
+    void shouldRejectFirstNameWithSpecialCharacters() throws Exception {
+        CustomerRequest request = new CustomerRequest("John<script>", "Doe", LocalDate.of(1990, 1, 15));
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value(containsString("invalid characters")));
+    }
+
+    @Test
+    void shouldRejectLastNameWithSpecialCharacters() throws Exception {
+        CustomerRequest request = new CustomerRequest("John", "Doe'; DROP TABLE customers;--", LocalDate.of(1990, 1, 15));
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value(containsString("invalid characters")));
+    }
+
+    @Test
+    void shouldRejectSQLInjectionAttempt() throws Exception {
+        CustomerRequest request = new CustomerRequest("John'; DROP TABLE customers;--", "Doe", LocalDate.of(1990, 1, 15));
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value(containsString("invalid characters")));
+    }
+
+    @Test
+    void shouldRejectXSSAttempt() throws Exception {
+        CustomerRequest request = new CustomerRequest("<script>alert('xss')</script>", "Doe", LocalDate.of(1990, 1, 15));
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value(containsString("invalid characters")));
+    }
+
+    @Test
+    void shouldAcceptValidNamesWithHyphensAndApostrophes() throws Exception {
+        CustomerRequest request = new CustomerRequest("Mary-Jane", "O'Brien", LocalDate.of(1990, 1, 15));
+        CustomerResponse response = new CustomerResponse(
+                UUID.randomUUID(),
+                "Mary-Jane",
+                "O'Brien",
+                LocalDate.of(1990, 1, 15)
+        );
+
+        when(customerService.createCustomer(any(CustomerRequest.class))).thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.firstName").value("Mary-Jane"))
+                .andExpect(jsonPath("$.lastName").value("O'Brien"));
     }
 
 }

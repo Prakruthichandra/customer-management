@@ -71,4 +71,44 @@ class CustomerServiceTest {
         assertThat(result).isEmpty();
         verify(customerRepository, times(1)).findAll();
     }
+
+    @Test
+    void shouldTrimWhitespaceFromFirstName() {
+        CustomerRequest request = new CustomerRequest("  John  ", "Doe", LocalDate.of(1990, 1, 15));
+        Customer savedCustomer = new Customer("John", "Doe", LocalDate.of(1990, 1, 15));
+
+        when(customerRepository.save(any(Customer.class))).thenReturn(savedCustomer);
+
+        CustomerResponse result = customerService.createCustomer(request);
+
+        assertThat(result.firstName()).isEqualTo("John");
+        verify(customerRepository, times(1)).save(any(Customer.class));
+    }
+
+    @Test
+    void shouldTrimWhitespaceFromLastName() {
+        CustomerRequest request = new CustomerRequest("John", "  Doe  ", LocalDate.of(1990, 1, 15));
+        Customer savedCustomer = new Customer("John", "Doe", LocalDate.of(1990, 1, 15));
+
+        when(customerRepository.save(any(Customer.class))).thenReturn(savedCustomer);
+
+        CustomerResponse result = customerService.createCustomer(request);
+
+        assertThat(result.lastName()).isEqualTo("Doe");
+        verify(customerRepository, times(1)).save(any(Customer.class));
+    }
+
+    @Test
+    void shouldTrimWhitespaceFromBothNames() {
+        CustomerRequest request = new CustomerRequest("  John  ", "  Doe  ", LocalDate.of(1990, 1, 15));
+        Customer savedCustomer = new Customer("John", "Doe", LocalDate.of(1990, 1, 15));
+
+        when(customerRepository.save(any(Customer.class))).thenReturn(savedCustomer);
+
+        CustomerResponse result = customerService.createCustomer(request);
+
+        assertThat(result.firstName()).isEqualTo("John");
+        assertThat(result.lastName()).isEqualTo("Doe");
+        verify(customerRepository, times(1)).save(any(Customer.class));
+    }
 }
