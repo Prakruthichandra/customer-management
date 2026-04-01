@@ -1,0 +1,45 @@
+package com.allica.customermanagement.entity;
+
+import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.util.UUID;
+
+@Entity
+@Table(name = "customers")
+public class Customer {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    private String firstName;
+
+    private String lastName;
+
+    private LocalDate dateOfBirth;
+
+    public Customer() {
+    }
+
+    public Customer(String firstName, String lastName, LocalDate dateOfBirth) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+}

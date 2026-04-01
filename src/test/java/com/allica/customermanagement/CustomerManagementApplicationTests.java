@@ -1,4 +1,4 @@
-package com.example.customermanagement;
+package com.allica.customermanagement;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
