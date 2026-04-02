@@ -139,6 +139,21 @@ class CustomerControllerTest {
     }
 
     @Test
+    void shouldReturn500ForUnexpectedExceptions() throws Exception {
+        CustomerRequest request = new CustomerRequest("John", "Doe", LocalDate.of(1990, 1, 15));
+
+        when(customerService.createCustomer(any(CustomerRequest.class)))
+                .thenThrow(new RuntimeException("Unexpected database error"));
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").value("An unexpected error occurred"));
+    }
+
+    @Test
     void shouldReturnEmptyArrayWhenNoCustomers() throws Exception {
         Page<CustomerResponse> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 20), 0);
         when(customerService.getAllCustomers(any())).thenReturn(emptyPage);
