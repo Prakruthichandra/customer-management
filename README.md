@@ -1,177 +1,167 @@
-# Customer Management API
+# Customer Management System
 
-REST API for managing customer records built with Spring Boot.
+A full-stack web application for managing customer records with pagination, sorting, and validation.
 
-## API Versioning Strategy
+## 🚀 Quick Start (2 minutes)
 
-### Current Version
-- **v1** - `/api/v1/customers`
-
-### Versioning Policy
-- **URI-based versioning**: Version is included in the URL path (`/api/v1/`, `/api/v2/`)
-- **Breaking changes**: When introducing breaking changes, we create a new version (v2, v3, etc.)
-- **Deprecation policy**: Old versions are supported for 6 months after a new version is released
-- **Non-breaking changes**: Added to current version without incrementing version number
-
-### What Constitutes a Breaking Change?
-- Removing or renaming fields in response
-- Changing field data types
-- Removing endpoints
-- Changing required validation rules
-- Changing error response format
-
-### Example Migration Path
-```
-v1 released: 2026-04-02
-v2 released: 2026-10-02
-v1 deprecated: 2026-10-02
-v1 end-of-life: 2027-04-02 (6 months after v2 release)
-```
-
-## API Endpoints
-
-### v1 Endpoints
-- `POST /api/v1/customers` - Create a new customer
-- `GET /api/v1/customers` - Get all customers
-
-## Technology Stack
-- Java 17
-- Spring Boot 3.5.0
-- Spring Data JPA
-- H2 Database (in-memory)
-- Maven
-- JUnit 5
-- SpringDoc OpenAPI (Swagger)
-
-## Getting Started
-
-### Prerequisites
-- Java 17 or higher
-- Maven 3.6+
-
-### Running the Application
-
+### 1. Start Backend
 ```bash
-# Build the project
-mvn clean install
-
-# Run the application
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
+Backend runs on `http://localhost:8080`
 
-The application will start on `http://localhost:8080`
-
-### Running Tests
-
+### 2. Start Frontend
 ```bash
-mvn test
+cd frontend
+npm install
+npm start
 ```
+Frontend runs on `http://localhost:3000`
 
-## API Documentation
+### 3. Open Browser
+Visit `http://localhost:3000` and start adding customers!
 
-Once the application is running, access the interactive API documentation:
+## 📋 Prerequisites
 
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **OpenAPI JSON**: http://localhost:8080/api-docs
+- Java 17+
+- Node.js 18+
+- Maven 3.8+
 
-## Example Usage
+## 🛠️ Tech Stack
 
-### Create a Customer
+**Backend:** Java 17, Spring Boot 3.5, H2 Database, Maven  
+**Frontend:** React 19, TypeScript, CSS  
+**Testing:** JUnit 5, Jest, Playwright
+
+## ✨ Features
+
+- ✅ Create customers with validation
+- ✅ Paginated list (5 customers per page)
+- ✅ Sort by First Name or Last Name (click column headers)
+- ✅ Client & server-side validation
+- ✅ Responsive design
+
+## 🧪 Testing
+
+### Backend Tests
 ```bash
-curl -X POST http://localhost:8080/api/v1/customers \
-  -H "Content-Type: application/json" \
-  -d '{
-    "firstName": "John",
-    "lastName": "Doe",
-    "dateOfBirth": "1990-01-15"
-  }'
+./mvnw test
 ```
 
-### Get All Customers
+### Frontend Unit Tests
 ```bash
-curl http://localhost:8080/api/v1/customers
+cd frontend
+npm test
 ```
 
-## Configuration
-
-### Profiles
-- **default** - Basic configuration (H2 in-memory database)
-- **dev** - Development profile with debug logging and SQL output
-- **test** - Test profile (used during test execution)
-- **prod** - Production profile with security hardening
-
-### Running with a Profile
+### E2E Tests (Playwright)
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+# Terminal 1: Start backend
+./mvnw spring-boot:run
+
+# Terminal 2: Run E2E tests
+cd frontend
+npx playwright install    # one-time setup
+npx playwright test
+npx playwright test --ui  # interactive mode
 ```
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-src/
-├── main/
-│   ├── java/
-│   │   └── com/allica/customermanagement/
-│   │       ├── config/          # Configuration classes
-│   │       ├── controller/      # REST controllers
-│   │       ├── dto/             # Data Transfer Objects
-│   │       ├── entity/          # JPA entities
-│   │       ├── exception/       # Exception handlers
-│   │       ├── repository/      # Data repositories
-│   │       └── service/         # Business logic
-│   └── resources/
-│       ├── application.yml      # Default configuration
-│       ├── application-dev.yml  # Development configuration
-│       ├── application-prod.yml # Production configuration
-│       └── application-test.yml # Test configuration
-└── test/
-    └── java/
-        └── com/allica/customermanagement/
-            ├── controller/      # Controller tests
-            ├── integration/     # Integration tests
-            └── service/         # Service tests
+customer-management/
+├── src/main/java/              # Backend (Spring Boot)
+│   ├── controller/             # REST endpoints
+│   ├── service/                # Business logic
+│   ├── repository/             # Data access
+│   ├── dto/                    # Request/Response objects
+│   └── entity/                 # Database entities
+├── frontend/
+│   ├── src/
+│   │   ├── components/         # React components
+│   │   ├── services/           # API client
+│   │   └── types/              # TypeScript types
+│   └── e2e/                    # Playwright tests
+└── README.md
 ```
 
-## Validation Rules
+## 🔌 API Endpoints
 
-### Customer Request
-- `firstName`: Required, 1-50 characters
-- `lastName`: Required, 1-50 characters
-- `dateOfBirth`: Required, must be in the past
+### Create Customer
+```http
+POST /api/v1/customers
+Content-Type: application/json
 
-## Error Handling
-
-The API returns consistent error responses:
-
-```json
 {
-  "timestamp": "2026-04-02T10:30:00",
-  "status": 400,
-  "message": "First name is required"
+  "firstName": "John",
+  "lastName": "Doe",
+  "dateOfBirth": "1990-01-15"
 }
 ```
 
-Common HTTP status codes:
-- `200 OK` - Successful GET request
-- `201 Created` - Successful POST request
-- `400 Bad Request` - Validation error or invalid input
-- `404 Not Found` - Resource not found
-- `500 Internal Server Error` - Server error
+### Get Customers (Paginated & Sorted)
+```http
+GET /api/v1/customers?page=0&size=5&sort=lastName,asc
+```
 
-## CORS Configuration
+**Response:**
+```json
+{
+  "customers": [...],
+  "page": 0,
+  "size": 5,
+  "totalElements": 10,
+  "totalPages": 2
+}
+```
 
-CORS is enabled for local development to allow frontend applications to access the API:
-- Allowed origins: `http://localhost:3000`, `http://localhost:4200`
-- Allowed methods: GET, POST, PUT, DELETE, PATCH
-- Note: CORS is disabled in production profile for security
+## ✅ Validation Rules
 
-## Contributing
+**First Name & Last Name:**
+- Required
+- 1-50 characters
+- Only letters, spaces, hyphens, apostrophes
 
-1. Follow existing code style and conventions
-2. Write tests for new features
-3. Ensure all tests pass before committing
-4. Update documentation as needed
+**Date of Birth:**
+- Required
+- Must be in the past
 
-## License
+## 🔧 Troubleshooting
 
-This project is licensed under the Apache License 2.0
+**Port 8080 already in use:**
+```bash
+# Find and kill the process
+netstat -ano | findstr :8080    # Windows
+lsof -i :8080                   # Mac/Linux
+```
+
+**Frontend can't connect to backend:**
+- Ensure backend is running on `http://localhost:8080`
+- Check `frontend/package.json` has `"proxy": "http://localhost:8080"`
+
+**E2E tests failing:**
+- Make sure backend is running first
+- Run `npx playwright install` if browsers aren't installed
+
+## 📚 Additional Documentation
+
+- `frontend/E2E_TEST_INSTRUCTIONS.md` - Detailed E2E testing guide
+- Swagger UI: `http://localhost:8080/swagger-ui.html` (when backend is running)
+
+## 🔄 API Versioning
+
+- **Current Version:** v1 (`/api/v1/customers`)
+- **Breaking changes** will increment version (v2, v3)
+- **Old versions** supported for 6 months after new release
+
+## 💾 Database
+
+- **H2 in-memory database** (data resets on restart)
+- H2 Console: `http://localhost:8080/h2-console`
+  - JDBC URL: `jdbc:h2:mem:testdb`
+  - Username: `sa`
+  - Password: (empty)
+
+## 📝 License
+
+Apache License 2.0
