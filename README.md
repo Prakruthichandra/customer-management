@@ -161,7 +161,3 @@ lsof -i :8080                   # Mac/Linux
   - JDBC URL: `jdbc:h2:mem:testdb`
   - Username: `sa`
   - Password: (empty)
-
-## 📝 License
-
-Apache License 2.0
