@@ -5,6 +5,21 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.customer-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.customer-table th.sortable:hover {
+  background-color: #e5e7eb;
+}
+
+.sort-icon {
+  font-size: 12px;
+  color: #2563eb;
+}
+
 .customer-table {
   width: 100%;
   border-collapse: collapse;

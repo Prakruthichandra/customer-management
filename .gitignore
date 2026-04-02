@@ -32,3 +32,8 @@ Thumbs.db
 *.jar
 *.war
 *.ear
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/playwright/.cache/

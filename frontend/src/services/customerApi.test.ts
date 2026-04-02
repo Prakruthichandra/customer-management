@@ -27,7 +27,7 @@ describe('customerApi', () => {
           },
         ],
         page: 0,
-        size: 20,
+        size: 5,
         totalElements: 2,
         totalPages: 1,
       };
@@ -39,7 +39,7 @@ describe('customerApi', () => {
 
       const result = await fetchCustomers();
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/v1/customers');
+      expect(global.fetch).toHaveBeenCalledWith('/api/v1/customers?page=0&size=5&sort=lastName%2Casc');
       expect(result).toEqual(mockPagedResponse);
     });
 

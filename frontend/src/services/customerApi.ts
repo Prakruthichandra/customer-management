@@ -1,7 +1,18 @@
 import { Customer, CustomerRequest, PagedResponse } from '../types/Customer';
 
-export const fetchCustomers = async (): Promise<PagedResponse<Customer>> => {
-  const response = await fetch('/api/v1/customers');
+export const fetchCustomers = async (
+  page: number = 0,
+  size: number = 5,
+  sort: string = 'lastName',
+  direction: 'asc' | 'desc' = 'asc'
+): Promise<PagedResponse<Customer>> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+    sort: `${sort},${direction}`
+  });
+
+  const response = await fetch(`/api/v1/customers?${params}`);
 
   if (!response.ok) {
     try {
