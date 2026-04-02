@@ -85,8 +85,7 @@ describe('CustomerList', () => {
   });
 
   it('should fetch next page when next button clicked', async () => {
-    const user = userEvent.setup();
-    const firstPageResponse: PagedResponse<any> = {
+        const firstPageResponse: PagedResponse<any> = {
       customers: [
         {
           id: '123e4567-e89b-12d3-a456-426614174000',
@@ -127,7 +126,7 @@ describe('CustomerList', () => {
     });
 
     const nextButton = screen.getByRole('button', { name: /next/i });
-    await user.click(nextButton);
+    await userEvent.click(nextButton);
 
     await waitFor(() => {
       expect(screen.getByText('Alice')).toBeInTheDocument();
@@ -135,8 +134,7 @@ describe('CustomerList', () => {
   });
 
   it('should fetch previous page when prev button clicked', async () => {
-    const user = userEvent.setup();
-    const firstPageResponse: PagedResponse<any> = {
+        const firstPageResponse: PagedResponse<any> = {
       customers: [
         {
           id: '123e4567-e89b-12d3-a456-426614174000',
@@ -178,14 +176,14 @@ describe('CustomerList', () => {
     });
 
     const nextButton = screen.getByRole('button', { name: /next/i });
-    await user.click(nextButton);
+    await userEvent.click(nextButton);
 
     await waitFor(() => {
       expect(screen.getByText('Alice')).toBeInTheDocument();
     });
 
     const prevButton = screen.getByRole('button', { name: /previous|prev/i });
-    await user.click(prevButton);
+    await userEvent.click(prevButton);
 
     await waitFor(() => {
       expect(screen.getByText('John')).toBeInTheDocument();
