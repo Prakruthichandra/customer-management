@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Customer } from '../types/Customer';
 import { fetchCustomers } from '../services/customerApi';
+import './CustomerList.css';
 
 const CustomerList: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -44,20 +45,20 @@ const CustomerList: React.FC = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="loading-state">Loading...</div>;
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <div className="error-state">{error}</div>;
   }
 
   if (customers.length === 0) {
-    return <div>No customers found</div>;
+    return <div className="empty-state">No customers found</div>;
   }
 
   return (
-    <div>
-      <table>
+    <div className="customer-list">
+      <table className="customer-table">
         <thead>
           <tr>
             <th>ID</th>
@@ -78,18 +79,20 @@ const CustomerList: React.FC = () => {
         </tbody>
       </table>
 
-      <div>
-        <p>Page {currentPage + 1} of {totalPages}</p>
-        <p>Total {totalElements} customers</p>
-      </div>
+      <div className="pagination">
+        <div className="pagination-info">
+          <p>Page {currentPage + 1} of {totalPages}</p>
+          <p>Total {totalElements} customers</p>
+        </div>
 
-      <div>
-        <button onClick={handlePrevPage} disabled={currentPage === 0}>
-          Previous
-        </button>
-        <button onClick={handleNextPage} disabled={currentPage >= totalPages - 1}>
-          Next
-        </button>
+        <div className="pagination-controls">
+          <button className="pagination-button" onClick={handlePrevPage} disabled={currentPage === 0}>
+            Previous
+          </button>
+          <button className="pagination-button" onClick={handleNextPage} disabled={currentPage >= totalPages - 1}>
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

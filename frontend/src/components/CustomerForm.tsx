@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Customer, CustomerRequest } from '../types/Customer';
 import { createCustomer } from '../services/customerApi';
+import './CustomerForm.css';
 
 interface CustomerFormProps {
   onSuccess: (customer: Customer) => void;
@@ -78,46 +79,49 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ onSuccess }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="firstName">First Name</label>
+    <form className="customer-form" onSubmit={handleSubmit}>
+      <div className="form-group">
+        <label className="form-label" htmlFor="firstName">First Name</label>
         <input
+          className={`form-input ${errors.firstName ? 'error' : ''}`}
           id="firstName"
           name="firstName"
           type="text"
           value={formData.firstName}
           onChange={handleChange}
         />
-        {errors.firstName && <div>{errors.firstName}</div>}
+        {errors.firstName && <div className="form-error">{errors.firstName}</div>}
       </div>
 
-      <div>
-        <label htmlFor="lastName">Last Name</label>
+      <div className="form-group">
+        <label className="form-label" htmlFor="lastName">Last Name</label>
         <input
+          className={`form-input ${errors.lastName ? 'error' : ''}`}
           id="lastName"
           name="lastName"
           type="text"
           value={formData.lastName}
           onChange={handleChange}
         />
-        {errors.lastName && <div>{errors.lastName}</div>}
+        {errors.lastName && <div className="form-error">{errors.lastName}</div>}
       </div>
 
-      <div>
-        <label htmlFor="dateOfBirth">Date of Birth</label>
+      <div className="form-group">
+        <label className="form-label" htmlFor="dateOfBirth">Date of Birth</label>
         <input
+          className={`form-input ${errors.dateOfBirth ? 'error' : ''}`}
           id="dateOfBirth"
           name="dateOfBirth"
           type="date"
           value={formData.dateOfBirth}
           onChange={handleChange}
         />
-        {errors.dateOfBirth && <div>{errors.dateOfBirth}</div>}
+        {errors.dateOfBirth && <div className="form-error">{errors.dateOfBirth}</div>}
       </div>
 
-      {apiError && <div>{apiError}</div>}
+      {apiError && <div className="api-error">{apiError}</div>}
 
-      <button type="submit" disabled={isSubmitting}>
+      <button className="form-button" type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Submitting...' : 'Create Customer'}
       </button>
     </form>

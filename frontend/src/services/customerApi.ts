@@ -4,8 +4,15 @@ export const fetchCustomers = async (): Promise<PagedResponse<Customer>> => {
   const response = await fetch('/api/v1/customers');
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to fetch customers');
+    try {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch customers');
+    } catch (e) {
+      if (e instanceof Error && !e.message.includes('is not a function') && !e.message.includes('Unexpected token')) {
+        throw e;
+      }
+      throw new Error(`Failed to fetch customers: ${response.status} ${response.statusText}`);
+    }
   }
 
   return response.json();
@@ -21,8 +28,15 @@ export const createCustomer = async (customer: CustomerRequest): Promise<Custome
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to create customer');
+    try {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create customer');
+    } catch (e) {
+      if (e instanceof Error && !e.message.includes('is not a function') && !e.message.includes('Unexpected token')) {
+        throw e;
+      }
+      throw new Error(`Failed to create customer: ${response.status} ${response.statusText}`);
+    }
   }
 
   return response.json();
