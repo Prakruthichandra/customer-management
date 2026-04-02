@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -78,16 +82,21 @@ class CustomerControllerTest {
                         LocalDate.of(1985, 8, 22)
                 )
         );
+        Page<CustomerResponse> page = new PageImpl<>(customers, PageRequest.of(0, 20), 2);
 
-        when(customerService.getAllCustomers()).thenReturn(customers);
+        when(customerService.getAllCustomers(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].firstName").value("John"))
-                .andExpect(jsonPath("$[1].firstName").value("Jane"));
+                .andExpect(jsonPath("$.customers").isArray())
+                .andExpect(jsonPath("$.customers.length()").value(2))
+                .andExpect(jsonPath("$.customers[0].firstName").value("John"))
+                .andExpect(jsonPath("$.customers[1].firstName").value("Jane"))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1));
     }
 
     @Test
@@ -131,11 +140,15 @@ class CustomerControllerTest {
 
     @Test
     void shouldReturnEmptyArrayWhenNoCustomers() throws Exception {
-        when(customerService.getAllCustomers()).thenReturn(List.of());
+        Page<CustomerResponse> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 20), 0);
+        when(customerService.getAllCustomers(any())).thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/v1/customers"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+                .andExpect(jsonPath("$.customers").isArray())
+                .andExpect(jsonPath("$.customers.length()").value(0))
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.totalPages").value(0));
     }
 
     @Test
@@ -220,6 +233,57 @@ class CustomerControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.firstName").value("Mary-Jane"))
                 .andExpect(jsonPath("$.lastName").value("O'Brien"));
+    }
+
+    @Test
+    void shouldReturnFirstPageWithDefaultSize() throws Exception {
+        List<CustomerResponse> customers = List.of(
+                new CustomerResponse(UUID.randomUUID(), "John", "Doe", LocalDate.of(1990, 1, 15)),
+                new CustomerResponse(UUID.randomUUID(), "Jane", "Smith", LocalDate.of(1985, 5, 20))
+        );
+        Page<CustomerResponse> page = new PageImpl<>(customers, PageRequest.of(0, 20), 100);
+
+        when(customerService.getAllCustomers(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/customers"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalElements").value(100))
+                .andExpect(jsonPath("$.totalPages").value(5));
+    }
+
+    @Test
+    void shouldReturnCustomPageSize() throws Exception {
+        List<CustomerResponse> customers = List.of(
+                new CustomerResponse(UUID.randomUUID(), "John", "Doe", LocalDate.of(1990, 1, 15))
+        );
+        Page<CustomerResponse> page = new PageImpl<>(customers, PageRequest.of(0, 10), 50);
+
+        when(customerService.getAllCustomers(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/customers?size=10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.totalPages").value(5));
+    }
+
+    @Test
+    void shouldReturnSecondPage() throws Exception {
+        List<CustomerResponse> customers = List.of(
+                new CustomerResponse(UUID.randomUUID(), "Alice", "Anderson", LocalDate.of(1992, 3, 10))
+        );
+        Page<CustomerResponse> page = new PageImpl<>(customers, PageRequest.of(1, 20), 30);
+
+        when(customerService.getAllCustomers(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/customers?page=1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.customers").isArray())
+                .andExpect(jsonPath("$.customers.length()").value(1))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalPages").exists());
     }
 
 }

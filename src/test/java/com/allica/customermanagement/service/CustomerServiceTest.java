@@ -9,6 +9,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -47,29 +51,36 @@ class CustomerServiceTest {
     }
 
     @Test
-    void shouldReturnAllCustomers() {
+    void shouldReturnPaginatedCustomers() {
+        Pageable pageable = PageRequest.of(0, 20);
         Customer customer1 = new Customer("John", "Doe", LocalDate.of(1990, 1, 15));
         Customer customer2 = new Customer("Jane", "Smith", LocalDate.of(1985, 5, 20));
-        List<Customer> expectedCustomers = Arrays.asList(customer1, customer2);
+        List<Customer> customers = Arrays.asList(customer1, customer2);
+        Page<Customer> customerPage = new PageImpl<>(customers, pageable, 2);
 
-        when(customerRepository.findAll()).thenReturn(expectedCustomers);
+        when(customerRepository.findAll(pageable)).thenReturn(customerPage);
 
-        List<CustomerResponse> result = customerService.getAllCustomers();
+        Page<CustomerResponse> result = customerService.getAllCustomers(pageable);
 
-        assertThat(result).hasSize(2);
-        assertThat(result).extracting(CustomerResponse::firstName).containsExactlyInAnyOrder("John", "Jane");
-        verify(customerRepository, times(1)).findAll();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+        assertThat(result.getContent()).extracting(CustomerResponse::firstName).containsExactlyInAnyOrder("John", "Jane");
+        verify(customerRepository, times(1)).findAll(pageable);
     }
 
     @Test
-    void shouldReturnEmptyListWhenNoCustomers() {
-        when(customerRepository.findAll()).thenReturn(Collections.emptyList());
-        //when(customerRepository.findAll()).thenReturn(List.of());
+    void shouldReturnEmptyPageWhenNoCustomers() {
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Customer> emptyPage = Page.empty(pageable);
 
-        List<CustomerResponse> result = customerService.getAllCustomers();
+        when(customerRepository.findAll(pageable)).thenReturn(emptyPage);
 
-        assertThat(result).isEmpty();
-        verify(customerRepository, times(1)).findAll();
+        Page<CustomerResponse> result = customerService.getAllCustomers(pageable);
+
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        verify(customerRepository, times(1)).findAll(pageable);
     }
 
     @Test

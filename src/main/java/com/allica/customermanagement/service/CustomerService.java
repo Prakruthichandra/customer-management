@@ -7,6 +7,8 @@ import com.allica.customermanagement.repository.CustomerRepository;
 import com.allica.customermanagement.util.StringSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,14 +46,14 @@ public class CustomerService {
         return CustomerResponse.from(savedCustomer);
     }
 
-    public List<CustomerResponse> getAllCustomers() {
-        logger.info("Retrieving all customers");
+    public Page<CustomerResponse> getAllCustomers(Pageable pageable) {
+        logger.info("Retrieving customers with pagination - page: {}, size: {}",
+                    pageable.getPageNumber(), pageable.getPageSize());
 
-        List<Customer> customers = customerRepository.findAll();
-        logger.info("Retrieved {} customers", customers.size());
-        
-        return customers.stream()
-                .map(CustomerResponse::from)
-                .toList();
+        Page<Customer> customers = customerRepository.findAll(pageable);
+        logger.info("Retrieved {} customers out of {} total",
+                    customers.getNumberOfElements(), customers.getTotalElements());
+
+        return customers.map(CustomerResponse::from);
     }
 }

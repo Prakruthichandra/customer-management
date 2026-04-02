@@ -2,8 +2,12 @@ package com.allica.customermanagement.controller;
 
 import com.allica.customermanagement.dto.CustomerRequest;
 import com.allica.customermanagement.dto.CustomerResponse;
+import com.allica.customermanagement.dto.PagedResponse;
 import com.allica.customermanagement.service.CustomerService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +31,10 @@ public class CustomerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
-        List<CustomerResponse> customers = customerService.getAllCustomers();
-        return ResponseEntity.ok(customers);
+    public ResponseEntity<PagedResponse<CustomerResponse>> getAllCustomers(
+            @PageableDefault(size = 20, sort = "lastName") Pageable pageable) {
+        Page<CustomerResponse> page = customerService.getAllCustomers(pageable);
+        PagedResponse<CustomerResponse> response = PagedResponse.from(page);
+        return ResponseEntity.ok(response);
     }
 }
