@@ -1,10 +1,11 @@
-import { Customer, CustomerRequest } from '../types/Customer';
+import { Customer, CustomerRequest, PagedResponse } from '../types/Customer';
 
-export const fetchCustomers = async (): Promise<Customer[]> => {
+export const fetchCustomers = async (): Promise<PagedResponse<Customer>> => {
   const response = await fetch('/api/v1/customers');
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch customers: ${response.status} ${response.statusText}`);
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to fetch customers');
   }
 
   return response.json();
@@ -20,7 +21,8 @@ export const createCustomer = async (customer: CustomerRequest): Promise<Custome
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to create customer: ${response.status} ${response.statusText}`);
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to create customer');
   }
 
   return response.json();

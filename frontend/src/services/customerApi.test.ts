@@ -11,40 +11,51 @@ describe('customerApi', () => {
 
   describe('fetchCustomers', () => {
     it('should fetch all customers', async () => {
-      const mockCustomers = [
-        {
-          id: '123e4567-e89b-12d3-a456-426614174000',
-          firstName: 'John',
-          lastName: 'Doe',
-          dateOfBirth: '1990-01-15',
-        },
-        {
-          id: '123e4567-e89b-12d3-a456-426614174001',
-          firstName: 'Jane',
-          lastName: 'Smith',
-          dateOfBirth: '1985-05-20',
-        },
-      ];
+      const mockPagedResponse = {
+        customers: [
+          {
+            id: '123e4567-e89b-12d3-a456-426614174000',
+            firstName: 'John',
+            lastName: 'Doe',
+            dateOfBirth: '1990-01-15',
+          },
+          {
+            id: '123e4567-e89b-12d3-a456-426614174001',
+            firstName: 'Jane',
+            lastName: 'Smith',
+            dateOfBirth: '1985-05-20',
+          },
+        ],
+        page: 0,
+        size: 20,
+        totalElements: 2,
+        totalPages: 1,
+      };
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockCustomers,
+        json: async () => mockPagedResponse,
       });
 
       const result = await fetchCustomers();
 
       expect(global.fetch).toHaveBeenCalledWith('/api/v1/customers');
-      expect(result).toEqual(mockCustomers);
+      expect(result).toEqual(mockPagedResponse);
     });
 
     it('should handle fetch errors', async () => {
+      const mockError = {
+        timestamp: '2026-04-02T10:00:00',
+        status: 500,
+        message: 'Internal Server Error',
+      };
+
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
-        status: 500,
-        statusText: 'Internal Server Error',
+        json: async () => mockError,
       });
 
-      await expect(fetchCustomers()).rejects.toThrow('Failed to fetch customers: 500 Internal Server Error');
+      await expect(fetchCustomers()).rejects.toThrow('Internal Server Error');
     });
   });
 
@@ -85,13 +96,18 @@ describe('customerApi', () => {
         dateOfBirth: '2030-01-15',
       };
 
+      const mockError = {
+        timestamp: '2026-04-02T10:00:00',
+        status: 400,
+        message: 'Date of birth must be in the past',
+      };
+
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
-        status: 400,
-        statusText: 'Bad Request',
+        json: async () => mockError,
       });
 
-      await expect(createCustomer(newCustomer)).rejects.toThrow('Failed to create customer: 400 Bad Request');
+      await expect(createCustomer(newCustomer)).rejects.toThrow('Date of birth must be in the past');
     });
   });
 });
